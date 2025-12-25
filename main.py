@@ -11,6 +11,7 @@ Environment Variables:
     PHONE_AGENT_API_KEY: API key for model authentication (default: EMPTY)
     PHONE_AGENT_MAX_STEPS: Maximum steps per task (default: 100)
     PHONE_AGENT_DEVICE_ID: ADB device ID for multi-device setups
+    ADB_PATH="D:/Program Files/Android/SDK/platform-tools/adb.exe" python main.py --base-url https://open.bigmodel.cn/api/paas/v4 --model "autoglm-phone" --apikey "1e4ee8e68e654147a26cd01bffe11bcc.yJmmKNQYjti7WX8n" "打开美团搜索附近的火锅店"            
 """
 
 import argparse
@@ -52,7 +53,7 @@ def check_system_requirements(device_type: DeviceType = DeviceType.ADB) -> bool:
 
     # Determine tool name and command
     tool_name = "ADB" if device_type == DeviceType.ADB else "HDC"
-    tool_cmd = "adb" if device_type == DeviceType.ADB else "hdc"
+    tool_cmd = os.getenv("ADB_PATH", "adb") if device_type == DeviceType.ADB else "hdc"
 
     # Check 1: Tool installed
     print(f"1. Checking {tool_name} installation...", end=" ")
@@ -104,7 +105,7 @@ def check_system_requirements(device_type: DeviceType = DeviceType.ADB) -> bool:
     try:
         if device_type == DeviceType.ADB:
             result = subprocess.run(
-                ["adb", "devices"], capture_output=True, text=True, timeout=10
+                [tool_cmd, "devices"], capture_output=True, text=True, timeout=10
             )
             lines = result.stdout.strip().split("\n")
             # Filter out header and empty lines, look for 'device' status
@@ -155,7 +156,7 @@ def check_system_requirements(device_type: DeviceType = DeviceType.ADB) -> bool:
         print("3. Checking ADB Keyboard...", end=" ")
         try:
             result = subprocess.run(
-                ["adb", "shell", "ime", "list", "-s"],
+                [tool_cmd, "shell", "ime", "list", "-s"],
                 capture_output=True,
                 text=True,
                 timeout=10,
